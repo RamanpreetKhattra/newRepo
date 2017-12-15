@@ -1,0 +1,115 @@
+package rules
+
+import com.tavant.mode.Account
+import java.util.Date
+
+import com.tavant.mode.Cheque
+import com.tavant.main.DayCounter
+
+// rules for saving account 
+
+agenda-group "group saving"
+rule "Rules for saving account if All condition is true"
+salience 5
+when
+  $accountObject : Account($chq : cheques)
+  $ch : Cheque() from $chq
+  eval($ch.compareDate() <= 90 && $accountObject.getAccountType()=="saving" && $accountObject.getAccountBalance() >= $ch.getWithdrawAmount() + 25)
+then
+		System.out.println("cheque Number :  "+$ch.getChequeNum());
+		System.out.println("difference in Month :  "+$ch.compareDate());
+		System.out.println("Account Type :  "+$accountObject.getAccountType());
+		System.out.println("cheque Date :  "+$ch.getInitiationDate());
+		System.out.println("Drawee Amount :  "+$ch.getWithdrawAmount());
+		System.out.println("amount  befor deduction from credit account: "+$accountObject.getAccountBalance());
+		if(($ch.getWithdrawAmount() *0.125)/100 <= 50)
+		$accountObject.setAccountBalance($accountObject.getAccountBalance() - ($ch.getWithdrawAmount() + ($ch.getWithdrawAmount() *0.125)/100));
+		else
+		$accountObject.setAccountBalance($accountObject.getAccountBalance() - ($ch.getWithdrawAmount() + 25));
+		System.out.println("amount  after deduction from credit account: "+$accountObject.getAccountBalance()+ " Transaction done by:: "+$ch.getChequeNum());
+		
+		System.out.println("=========================");
+end
+
+agenda-group "group saving"
+rule "Rules for saving account if Date is not true"
+salience 4
+when
+	$accountObject : Account($chq : cheques)
+	  $ch : Cheque() from $chq
+	  eval($ch.compareDate() > 90 && $accountObject.getAccountType()=="saving" && $accountObject.getAccountBalance() >= $ch.getWithdrawAmount() + 25)
+then
+	  System.out.println("Date is not correct: "+$ch.getChequeNum());
+	  System.out.println("Account Type :  "+$accountObject.getAccountType());
+	 
+	  System.out.println("=========================");
+end
+
+agenda-group "group saving"
+rule "Rules for saving account if Amount is not sufficient"
+salience 3
+no-loop true
+when
+	  $accountObject : Account($chq : cheques)
+	  $ch : Cheque() from $chq
+	  eval($ch.compareDate() <= 90 && $accountObject.getAccountType()=="saving" && $accountObject.getAccountBalance() < $ch.getWithdrawAmount() + 25)
+then
+  	  System.out.println("Amount is not Sufficient: "+$ch.getChequeNum());
+  	  System.out.println("Account Type :  "+$accountObject.getAccountType());
+  	  System.out.println("=========================");
+  	  update($accountObject);
+end
+
+
+
+//rules for credit Account 
+
+agenda-group "group credit"
+rule "Rules for credit account if All condition is true"
+salience 5
+when
+  $accountObject : Account($chq : cheques)
+  $ch : Cheque() from $chq
+  eval($ch.compareDate() <= 90 && $accountObject.getAccountType()=="credit" && $accountObject.getAccountBalance() >= $ch.getWithdrawAmount() + 50)
+then
+		System.out.println("cheque Number :  "+$ch.getChequeNum());
+		System.out.println("Account Type :  "+$accountObject.getAccountType());
+		System.out.println("cheque Date :  "+$ch.getInitiationDate());
+		System.out.println("Drawee Amount :  "+$ch.getWithdrawAmount());
+		System.out.println("amount  befor deduction from credit account: "+$accountObject.getAccountBalance());
+		if(($ch.getWithdrawAmount() *0.025)/100 <= 50)
+		$accountObject.setAccountBalance($accountObject.getAccountBalance() - ($ch.getWithdrawAmount() + ($ch.getWithdrawAmount() *0.025)/100));
+		else
+		$accountObject.setAccountBalance($accountObject.getAccountBalance() - ($ch.getWithdrawAmount() + 50));
+		System.out.println("amount  after deduction from credit account: "+$accountObject.getAccountBalance()+ " Transaction done by:: "+$ch.getChequeNum());
+		System.out.println("=========================");
+		end
+
+agenda-group "group credit"
+rule "Rules for credit account if Date is not true"
+salience 4
+
+when
+	  $accountObject : Account($chq : cheques)
+	  $ch : Cheque() from $chq
+  eval($ch.compareDate() > 90 &&  $accountObject.getAccountType()=="credit" && $accountObject.getAccountBalance() >= $ch.getWithdrawAmount() + 50)
+then
+   	  System.out.println("Date is not correct: "+$ch.getChequeNum());
+   	  System.out.println("Account Type :  "+$accountObject.getAccountType());
+   	  System.out.println("=========================");
+end
+
+
+agenda-group "group credit"
+rule "Rules for credit account if Amount is not sufficient"
+salience 3
+when
+	  $accountObject : Account($chq : cheques)
+	  $ch : Cheque() from $chq
+  eval($ch.compareDate() <= 90 && $accountObject.getAccountType()=="credit" && $accountObject.getAccountBalance() < $ch.getWithdrawAmount() + 50)
+then
+	 System.out.println("Amount is not Sufficient: "+$ch.getChequeNum());
+	 System.out.println("Account Type :  "+$accountObject.getAccountType());
+	 System.out.println("=========================");
+end
+
